@@ -5,7 +5,7 @@
 import poplib
 import email
 import base64
-import re
+import re,os
 from email.Header import decode_header
 from messagelogger import MessageLogger
 
@@ -106,14 +106,16 @@ class MailMessage(object):
 
         return attached_files
  
-    def save_attachments(self,filenames=None,content_type='application'):
+    def save_attachments(self,todir="./",filenames=None,content_type='application'):
         if not filenames:
             filenames = self.attached_data.keys()
             
-        for filename,payload in self.attached_data.items():
-            with open(filename,'wb') as fp:
+        for filename in filenames:
+            payload = self.attached_data[filename]
+            pathfilename = os.path.join(todir,filename)
+            with open(pathfilename,'wb') as fp:
                 fp.write(payload)
-            logger.debug("Save attachment:%s" % filename)
+            logger.debug("Save attachment to: %s" % pathfilename)
             
     def __repr__(self):
         #return u"MailMessage(from:%s, subject:%s)" % (self.get_addr('from'),self.info('subject'))
@@ -321,7 +323,7 @@ class POPServer(MailReceiver):
             yield msgid,"\n".join(mobj[1])
 
     def delete_messages(self,msgid):
-        """Delete the msgids.
+        """Delete the msgids. msgids can be a messageID or a list.
         """
         msgid_list = None
         if isinstance(msgid,list):
@@ -329,7 +331,7 @@ class POPServer(MailReceiver):
         else:
             msgid_list = [msgid]
 
-        print "msgid_list:",msgid_list
+        #print "msgid_list:",msgid_list
         for msgid in msgid_list:
             logger.debug("Deleting msgid: %s" % msgid)
             self.connection.dele(msgid)
@@ -387,7 +389,7 @@ if __name__ == "__main__":
         if m.attached_data:
             print "m.attached_filenames:",m.attached_data.keys()
             for fname,payload in m.attached_data.items():
-                print fname,payload
+                print fname
         print "-"*78
         
 

@@ -35,10 +35,19 @@ def get_archive_files(logdir):
     return [f for f in os.listdir(logdir) if is_archive(f)]
     
 def decompress(zfilename,targetpath):
-    zfile = CompressFile(zfilename)
+    zfile = ArchivedFile(zfilename)
     zfile.extractall(targetpath)      
-    
-class CompressFile(object):
+
+def compress_to_zipfile(targetdir, savename):
+    zipcmd = "/usr/bin/zip -r -D %(zipfilename)s %(target)s/*"
+    result = os.system(zipcmd % dict(zipfilename=savename,target=targetdir))
+
+    if result == 0:
+        return "Success"
+    else:
+        return "Failed"
+
+class ArchivedFile(object):
     def __init__(self,filename):
         if is_zipfile(filename):
             self._zfile = ZipFile(filename)
@@ -65,7 +74,7 @@ def get_text_from_file(filename):
         logtxt = "".join(fp.readlines())
     return logtxt
     
-def process_archive_files(logdir, tmpdir):
+def decompress_archived_files(logdir, tmpdir):
     """decompress the archived files or move log files to temporal directory.
     """
     for dfile in get_archive_files(logdir):
@@ -79,15 +88,14 @@ def process_archive_files(logdir, tmpdir):
             shutil.move(srcfile,dstdir)
             continue
         else:
-            print "extract compress file:%s --> %s" % (dfile,project_name)
+            print "extract compress file:%s --> %s" % (dfile,os.path.join(tmpdir,project_name))
             decompress(srcfile,dstdir)
-
 
 if __name__ == "__main__":
    if len(sys.argv) < 2:
         print __doc__
         sys.exit(1)
     
-   logdir = sys.argv[1:]
+   logdir,destdir = sys.argv[1:]
     
-   process_archive_files(logdir,'tmp')            
+   decompress_archived_files(logdir,destdir)            

@@ -4,7 +4,8 @@
 
 from logger import MessageLogger
 
-logger = MessageLogger()
+logger = MessageLogger(logname)
+logger.
 
 """
 
@@ -44,13 +45,15 @@ class MessageLogger(object):
         self.handlers['console'] = ch
         
         if logfile:
-            self.setFileHandler(logfile)
+            self.addFileHandler(logfile)
             
     def setLevel(self,level):
         self.logger.setLevel(logging._levelNames.get(level,logging.DEBUG))
         #self.logger.setLevel(level)
+    
     def getLevel(self):
         return self.logger.getEffectiveLevel()
+    
     def addFileHandler(self,filename):
         handler = RotatingFileHandler(
                   filename, maxBytes=self.maxbytes,backupCount=self.backupcount)

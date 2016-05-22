@@ -17,12 +17,12 @@ Usage Examples:
    
 - encrypt/decrypt the password in a console:
 
-    R:\git\mypylibs>python account.py encrypt
+    python -m netaccount encrypt
     Input the user name:root
     Input the password(max length 20):
     ==I5dmRISnZiM1J5YjI5MGNtOXZLMkZpWTJjbQUn
 
-    R:\git\mypylibs>python account.py decrypt
+    python -m netaccount decrypt
     Input the username:root
     Input the encrypt password string:==I5dmRISnZiM1J5YjI5MGNtOXZLMkZpWTJjbQUn
       
@@ -137,7 +137,7 @@ class Account(object):
         """
         with file(filename) as fp:
             alldata = yaml.load(fp)
-        
+
         data = alldata.get(acc_name,None)
         if not data:
             print "No such account:",acc_name
@@ -176,9 +176,13 @@ class AccountFile(object):
     """Read the account info from the YAML file.
     """
     def __init__(self,filename):
-        with file(filename) as fp:
-            self.data = yaml.load(fp)
-        
+        try:
+            with file(filename) as fp:
+                self.data = yaml.load(fp)
+        except IOError,e:
+            print "Error happend: %s" % e
+            
+
     def get(self,account_name):
         """Get the account data of account_name.
         """
@@ -210,8 +214,7 @@ class AccountFile(object):
         """
         pass
 
-
-if __name__ == "__main__":
+def test_account():
     accfile = AccountFile("hostaccount.yml")
     
     acc1 = accfile.account('smartchecker')
@@ -223,5 +226,19 @@ if __name__ == "__main__":
     print "account2:", acc2
     print acc2.password, acc2.decrypt_password()
     #acc2.save('hostaccount.yml')
+    
+
+if __name__ == "__main__":
+    import sys
+    
+    if len(sys.argv)<2:
+        print __doc__
+        sys.exit(1)
+    
+    action = sys.argv[1]
+    if action == 'encrypt':
+        print encrypt_password()
+    elif action == 'decrypt':
+        print decrypt_password()
     
 

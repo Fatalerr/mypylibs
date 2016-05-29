@@ -41,7 +41,7 @@ def decompress(zfilename,targetpath):
     zfile.extractall(targetpath)      
 
 def compress_to_zipfile(targetdir, savename):
-    zipcmd = "/usr/bin/zip -r -D %(zipfilename)s %(target)s/*"
+    zipcmd = "/usr/bin/zip -rj -D %(zipfilename)s %(target)s/*"
     result = os.system(zipcmd % dict(zipfilename=savename,target=os.path.abspath(targetdir)))
 
     if result == 0:

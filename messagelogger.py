@@ -19,6 +19,17 @@ from logging.handlers import RotatingFileHandler
 LOG_FORMATTER = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 logging.addLevelName(100,'DISABLE')
 
+def setBasicConfig(format=None,datefmt=None,level=None):
+    format = format or LOG_FORMATTER
+    datefmt = datefmt or "%Y-%m-%d %H:%M:%S"
+    level = level or logging.INFO
+    
+    logging.basicConfig(
+        format=format,
+        datefmt=datefmt,
+        level=level,
+        )
+
 class MessageLogger(object):
     """A customize and easy to used logging tools, only support stream(console) and file handler
     
@@ -29,20 +40,24 @@ class MessageLogger(object):
     logger.critical('critical message')
     
     """
-    def __init__(self,name,logfile="",maxbytes=1024*1024,backupcount=5,fmt=LOG_FORMATTER):
-        logger = logging.getLogger(name)
+    root = logging.getLogger()
+    
+    def __init__(self,name=None,logfile="",maxbytes=1024*1024,backupcount=5,fmt=LOG_FORMATTER):       
         self.maxbytes = maxbytes
         self.backupcount = backupcount
         self.formatter = logging.Formatter(fmt,"%Y-%m-%d %H:%M:%S")
         self.handlers = {}
         
-        logger.setLevel(logging.DEBUG)
+        self.logger = logging.getLogger(name)        
+        #self.logger.setLevel(logging.INFO)
 
-        ch = logging.StreamHandler()                                             
-        ch.setFormatter(self.formatter)
-        logger.addHandler(ch)
-        self.logger = logger
-        self.handlers['console'] = ch
+        if not name:
+            setBasicConfig()
+            
+        # ch = logging.StreamHandler()                                             
+        # ch.setFormatter(self.formatter)
+        # logger.addHandler(ch)
+        #self.handlers['console'] = ch
         
         if logfile:
             self.addFileHandler(logfile)
@@ -54,18 +69,24 @@ class MessageLogger(object):
     def getLevel(self):
         return self.logger.getEffectiveLevel()
     
-    def addFileHandler(self,filename):
+    def addFileHandler(self,filename,root=False):
         handler = RotatingFileHandler(
                   filename, maxBytes=self.maxbytes,backupCount=self.backupcount)
         handler.setFormatter(self.formatter)
-        self.logger.addHandler(handler)
-        self.handlers['file'] = handler
+        if root:
+            self.root.addHandler(handler)
+        else:
+            self.logger.addHandler(handler)
+            self.handlers['file'] = handler
         
-    def setHandlerLevel(self,handlertype,level):
+    def setHandlerLevel(self,handlertype,level,root=False):
         """handlertype: 'console' or 'file' 
         level: 'DISABLE', 'DEBUG','INFO'...
         """
-        self.handlers[handlertype].setLevel(logging._levelNames.get(level,logging.DEBUG))
+        if root:
+            self.root.setLevel(logging._levelNames.get(level,logging.DEBUG))
+        else:
+            self.handlers[handlertype].setLevel(logging._levelNames.get(level,logging.DEBUG))
         
     def debug(self,msg):
         self.logger.debug(msg)

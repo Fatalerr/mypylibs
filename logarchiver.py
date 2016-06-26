@@ -27,7 +27,7 @@ is_archive = lambda fname: archive_pat.search(fname)
 logger = logging.getLogger('logarchiver')
 
 def get_keyword_from_filename(kwpattern,filename):
-    kwnames = re.findall(filename)
+    kwnames = re.findall(kwpattern,filename)
     if kwnames:
         return kwnames[0]
     else:
